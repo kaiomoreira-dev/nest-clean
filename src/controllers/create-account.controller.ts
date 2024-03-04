@@ -22,11 +22,14 @@ type RegisterAccountUser = z.infer<typeof registerAccountUser>
 export class CreateAccountController {
   constructor(private prisma: PrismaService) {}
 
+  // Decorators para dizer que a rota é POST
+  // Que vai retornar um status HTTP 201
+  // Um pipe para validar os atributos do schema de registerAccountUser
+  // E um body para pegar os dados pelo corpo da requisição
   @Post()
   @HttpCode(201)
   @UsePipes(new ZodValidationPipe(registerAccountUser))
   async handle(@Body() body: RegisterAccountUser) {
-    console.log(body)
     const { name, email, password } = body
 
     const findEmailExist = await this.prisma.user.findUnique({
@@ -39,12 +42,14 @@ export class CreateAccountController {
       throw new ConflictException('Email already exists')
     }
 
-    await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         name,
         email,
         password,
       },
     })
+
+    return user
   }
 }
